@@ -1,3 +1,21 @@
 <resources>
     <string name="app_name">NotesV3</string>
+
+    <string name="name_1">Заметка №1</string>
+    <string name="name_2">Заметка №2</string>
+    <string name="name_3">Заметка №3</string>
+    <string name="name_4">Заметка №4</string>
+    <string name="name_5">Заметка №5</string>
+
+    <string name="date_1">1.01.2021</string>
+    <string name="date_2">2.02.2021</string>
+    <string name="date_3">3.03.2021</string>
+    <string name="date_4">4.04.2021</string>
+    <string name="date_5">5.05.2021</string>
+
+    <string name="note_1">Первая запись</string>
+    <string name="note_2">Вторая запись</string>
+    <string name="note_3">Третья запись</string>
+    <string name="note_4">Четвертая запись</string>
+    <string name="note_5">Пятая запись</string>
 </resources>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".ui.details.NotesDetailsFragment">
+
+    <TextView
+        android:id="@+id/notes_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        tools:text="@string/name_1"
+        android:textStyle="italic"
+        android:padding="@dimen/padding"
+        android:gravity="center"/>
+
+    <TextView
+        android:id="@+id/notes_note"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/padding"
+        tools:text="@string/note_1"/>
+
+</LinearLayout>

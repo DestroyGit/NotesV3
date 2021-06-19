@@ -2,9 +2,9 @@
 <androidx.fragment.app.FragmentContainerView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/notes_list_fragment"
+    android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:name="com.example.notesv3.ui.list.NotesListFragment"
-    tools:context=".ui.MainActivity"/>
+    tools:context=".ui.details.NotesDetailsActivity">
 
+</androidx.fragment.app.FragmentContainerView>

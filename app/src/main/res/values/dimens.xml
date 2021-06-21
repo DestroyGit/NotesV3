@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="padding">10dp</dimen>
+    <dimen name="margin_40">40dp</dimen>
+    <dimen name="drawer_profile_padding_25">25dp</dimen>
+    <dimen name="drawer_profile_size_avatar">100dp</dimen>
+    <dimen name="drawer_profile_padding_10">10dp</dimen>
+    <dimen name="drawer_profile_username_size">25sp</dimen>
+    <dimen name="drawer_profile_email_size">18sp</dimen>
 </resources>

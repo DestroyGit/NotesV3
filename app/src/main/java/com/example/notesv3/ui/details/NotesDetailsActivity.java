@@ -7,6 +7,10 @@ import android.os.Bundle;
 import com.example.notesv3.R;
 import com.example.notesv3.domain.Notes;
 
+/**
+Эта активити не используется
+ **/
+
 public class NotesDetailsActivity extends AppCompatActivity {
 
     public static final String ARG_NOTES = "ARG_NOTES";

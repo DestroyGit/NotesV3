@@ -18,4 +18,19 @@
     <string name="note_3">Третья запись</string>
     <string name="note_4">Четвертая запись</string>
     <string name="note_5">Пятая запись</string>
+
+    <string name="settings">Settings</string>
+    <string name="favorites">Favorites</string>
+    <string name="help">Help</string>
+
+    <string name="settings_will_be_here">Settings will be here</string>
+    <string name="favorites_will_be_here">Favorites will be here</string>
+    <string name="help_will_be_here">Help will be here</string>
+    <string name="search">Search</string>
+    <string name="clear_text">Clear text</string>
+    <string name="reset_settings">Reset settings</string>
+    <string name="username">Maxim</string>
+    <string name="user_email">max@gb.ru</string>
+    <string name="profile">Profile</string>
+    <string name="change_user">Change user</string>
 </resources>

@@ -11,8 +11,13 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.notesv3.R;
 import com.example.notesv3.domain.Notes;
@@ -70,48 +75,29 @@ public class NotesListFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         // находим макет фрагмента, куда будем добавлять вьюхи с заметками
-        LinearLayout notesList = view.findViewById(R.id.notes_list_container);
+        RecyclerView notesList = view.findViewById(R.id.notes_list_container);
 
+        // отображаем линейно в вертикальной резметке
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(requireContext());
+        notesList.setLayoutManager(linearLayoutManager);
+
+        //создаем разделитель между карточками
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(requireContext(), linearLayoutManager.getOrientation());
+        dividerItemDecoration.setDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_separatore));
+        notesList.addItemDecoration(dividerItemDecoration);
         // достаем список данных по заметкам из репозитория
         List<Notes> notes = notesRepository.getNotes();
 
-        int count = 1; // счетчик для четных и нечетных строк для закрашивания в серый четные заметки
-
-        // проходимся по всем заметкам
-        for(Notes note : notes){
-
-            // даем возможность надувать контейнер (фрагмент) вьюхами.
-            // В скобках: вьюха, макет фрагмента, перезапись - если true, то в одном и том же месте будет
-            View itemView = LayoutInflater.from(requireContext()).inflate(R.layout.item_notes, notesList,false);
-
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    // если не нулл, то "вот по такому городу произвели нажатие"
-                    if (onNotesClicked != null){
+        NotesAdapter notesAdapter = new NotesAdapter();
+        notesAdapter.setData(notes);
+        notesAdapter.setListener(new NotesAdapter.OnNoteClickedListener() {
+            @Override
+            public void onNoteClickedListener(@NonNull Notes note) {
+                if (onNotesClicked != null){
                         onNotesClicked.onNotesClicked(note);
-                    }
                 }
-            });
-
-            // находим элементы макета
-            TextView notesName = itemView.findViewById(R.id.notes_name);
-            TextView notesDate = itemView.findViewById(R.id.notes_date);
-
-            // добавляем в найденные элементы макета текст для вывода на экран - то, чем заполняем TextView
-            notesName.setText(note.getName());
-            notesDate.setText(note.getDate());
-
-            // каждая четная строка подкрашивается в серый цвет
-            if (count%2 == 0){
-                itemView.setBackgroundResource(R.color.light_grey);
             }
-            count++;
-
-            // добавляем заметку
-            notesList.addView(itemView);
-        }
-
-
+        });
+        notesList.setAdapter(notesAdapter);
     }
 }

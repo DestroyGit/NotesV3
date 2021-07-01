@@ -28,7 +28,14 @@ import com.example.notesv3.ui.toolbar.HelpFragment;
 import com.example.notesv3.ui.toolbar.SettingsFragment;
 import com.google.android.material.navigation.NavigationView;
 
-public class MainActivity extends AppCompatActivity implements NotesListFragment.OnNotesClicked {
+public class MainActivity extends AppCompatActivity implements NotesListFragment.OnNotesClicked, RouterHolder {
+
+    private MainRouter router;
+
+    @Override
+    public MainRouter getMainRouter() {
+        return router;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,8 +90,6 @@ public class MainActivity extends AppCompatActivity implements NotesListFragment
                     drawerLayout.closeDrawer(GravityCompat.START);
                     return true;
                 }
-
-
                 return false;
             }
         });

@@ -13,6 +13,8 @@ import androidx.fragment.app.Fragment;
 
 import com.example.notesv3.R;
 import com.example.notesv3.domain.Notes;
+import com.example.notesv3.domain.NotesFirestoreRepository;
+import com.example.notesv3.domain.NotesRepository;
 
 import java.util.Calendar;
 
@@ -21,6 +23,8 @@ public class UpdateNotesFragment extends Fragment {
     public static final String TAG = "UpdateNotesFragment";
 
     private static final String ARG_NOTE = "ARG_NOTE";
+
+    private final NotesRepository repository = NotesFirestoreRepository.INSTANCE;
 
     public static UpdateNotesFragment newInstance(Notes notes){
         UpdateNotesFragment fragment = new UpdateNotesFragment();

@@ -24,11 +24,14 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.notesv3.R;
+import com.example.notesv3.domain.Callback;
 import com.example.notesv3.domain.Notes;
+import com.example.notesv3.domain.NotesFirestoreRepository;
 import com.example.notesv3.domain.NotesRepository;
 import com.example.notesv3.domain.NotesRepositoryImpl;
 import com.example.notesv3.ui.MainRouter;
 import com.example.notesv3.ui.RouterHolder;
+import com.example.notesv3.ui.auth.AuthFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.Date;
@@ -36,12 +39,20 @@ import java.util.List;
 
 public class NotesListFragment extends Fragment {
 
+    public static final String TAG = "NotesListFragment";
+
+    public static NotesListFragment newInstance(){
+        return new NotesListFragment();
+    }
+
+    private final NotesRepository notesRepository = NotesFirestoreRepository.INSTANCE;
+
     // интерфейс для открытия новой активити для отображения самой заметки
     public interface OnNotesClicked{
         void onNotesClicked(Notes notes);
     }
 
-    private NotesRepository notesRepository;
+    //private NotesRepository notesRepository;
     private NotesAdapter notesAdapter;
 
     // добавляем экземпляр класса, реализующий интерфейс OnNotesClicked
@@ -74,7 +85,16 @@ public class NotesListFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         notesAdapter = new NotesAdapter(this);
-        notesRepository = new NotesRepositoryImpl();
+//        notesRepository = new NotesRepositoryImpl();
+
+        // достаем список данных по заметкам из репозитория
+        notesRepository.getNotes(new Callback<List<Notes>>() {
+            @Override
+            public void onSuccess(List<Notes> result) {
+                notesAdapter.setData(result);
+                notesAdapter.notifyDataSetChanged();
+            }
+        });
 
         notesAdapter.setListener(new NotesAdapter.OnNoteClickedListener() {
             @Override
@@ -119,10 +139,15 @@ public class NotesListFragment extends Fragment {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 if (item.getItemId() == R.id.action_add){
-                    Notes addedNote = notesRepository.add("9","Новая заметка", new Date(), "Новая запись в новой заметке");
-                    int index = notesAdapter.add(addedNote);
-                    notesAdapter.notifyItemInserted(index);
-                    notesList.scrollToPosition(index);
+                    notesRepository.add("9", "Новая заметка", new Date(), "Новая запись в новой заметке", new Callback<Notes>() {
+                        @Override
+                        public void onSuccess(Notes result) {
+                            int index = notesAdapter.add(result);
+                            notesAdapter.notifyItemInserted(index);
+                            notesList.scrollToPosition(index);
+                        }
+                    });
+
                     return true;
                 }
                 return true;
@@ -137,10 +162,6 @@ public class NotesListFragment extends Fragment {
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(requireContext(), linearLayoutManager.getOrientation());
         dividerItemDecoration.setDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_separatore));
         notesList.addItemDecoration(dividerItemDecoration);
-        // достаем список данных по заметкам из репозитория
-        List<Notes> notes = notesRepository.getNotes();
-
-        notesAdapter.setData(notes);
 
         notesList.setAdapter(notesAdapter);
     }
@@ -167,9 +188,13 @@ public class NotesListFragment extends Fragment {
         }
 
         if (item.getItemId() == R.id.action_delete){
-            notesRepository.remove(longClickedNote);
-            notesAdapter.remove(longClickedNote); // подобное удаление для адаптера, чтобы и там сохранить
-            notesAdapter.notifyItemRemoved(longClickedIndex); // говорим адаптеру, что заметка была удалена по такому индексу
+            notesRepository.remove(longClickedNote, new Callback<Object>() {
+                @Override
+                public void onSuccess(Object result) {
+                    notesAdapter.remove(longClickedNote); // подобное удаление для адаптера, чтобы и там сохранить
+                    notesAdapter.notifyItemRemoved(longClickedIndex); // говорим адаптеру, что заметка была удалена по такому индексу
+                }
+            });
             return true;
         }
         return super.onContextItemSelected(item);

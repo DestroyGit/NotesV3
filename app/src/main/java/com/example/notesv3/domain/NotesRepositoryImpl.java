@@ -2,6 +2,9 @@ package com.example.notesv3.domain;
 
 // будет возвращать список всех заметок
 
+import android.os.Handler;
+import android.os.Looper;
+
 import androidx.annotation.Nullable;
 
 import com.example.notesv3.R;
@@ -10,10 +13,17 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class NotesRepositoryImpl implements NotesRepository{
 
+    public static final NotesRepository INSTANCE = new NotesRepositoryImpl();
+
     private final ArrayList<Notes> result = new ArrayList<>();
+
+    private ExecutorService executor = Executors.newSingleThreadExecutor();
+    private Handler handler = new Handler(Looper.getMainLooper()); // заюзать в главном потоке
 
     public NotesRepositoryImpl(){
         result.add(new Notes("1", "Заметка №1", new Date(), "Первая запись"));
@@ -27,20 +37,36 @@ public class NotesRepositoryImpl implements NotesRepository{
     }
 
     @Override
-    public List<Notes> getNotes(){
-        return result;
+    public void getNotes(Callback<List<Notes>> callback) {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(2000L);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        callback.onSuccess(result);
+                    }
+                });
+            }
+        });
     }
 
     @Override
-    public Notes add(String id, String name, Date date, String note) {
+    public void add(String id, String name, Date date, String note, Callback<Notes> callback) {
         Notes notes = new Notes(UUID.randomUUID().toString(), name, new Date(), note);
         result.add(notes);
-        return notes;
+        callback.onSuccess(notes);
     }
 
     @Override
-    public void remove(Notes notes) {
+    public void remove(Notes notes, Callback<Object> callback) {
         result.remove(notes);
+        callback.onSuccess(notes);
     }
 
     @Override

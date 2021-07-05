@@ -2,7 +2,9 @@ package com.example.notesv3.ui.list;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.view.ContextMenu;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -11,27 +13,53 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.notesv3.R;
+import com.example.notesv3.domain.Callback;
 import com.example.notesv3.domain.Notes;
+import com.example.notesv3.domain.NotesFirestoreRepository;
 import com.example.notesv3.domain.NotesRepository;
 import com.example.notesv3.domain.NotesRepositoryImpl;
+import com.example.notesv3.ui.MainRouter;
+import com.example.notesv3.ui.RouterHolder;
+import com.example.notesv3.ui.auth.AuthFragment;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import java.util.Date;
 import java.util.List;
 
 public class NotesListFragment extends Fragment {
+
+    public static final String TAG = "NotesListFragment";
+
+    public static NotesListFragment newInstance(){
+        return new NotesListFragment();
+    }
+
+    private final NotesRepository notesRepository = NotesFirestoreRepository.INSTANCE;
 
     // интерфейс для открытия новой активити для отображения самой заметки
     public interface OnNotesClicked{
         void onNotesClicked(Notes notes);
     }
 
-    private NotesRepository notesRepository;
+    //private NotesRepository notesRepository;
+    private NotesAdapter notesAdapter;
 
     // добавляем экземпляр класса, реализующий интерфейс OnNotesClicked
     private OnNotesClicked onNotesClicked;
+
+    private int longClickedIndex;
+    private Notes longClickedNote;
 
     // когда к активити подцепились
     @Override
@@ -56,7 +84,34 @@ public class NotesListFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        notesRepository = new NotesRepositoryImpl();
+        notesAdapter = new NotesAdapter(this);
+//        notesRepository = new NotesRepositoryImpl();
+
+        // достаем список данных по заметкам из репозитория
+        notesRepository.getNotes(new Callback<List<Notes>>() {
+            @Override
+            public void onSuccess(List<Notes> result) {
+                notesAdapter.setData(result);
+                notesAdapter.notifyDataSetChanged();
+            }
+        });
+
+        notesAdapter.setListener(new NotesAdapter.OnNoteClickedListener() {
+            @Override
+            public void onNoteClickedListener(@NonNull Notes note) {
+                if (onNotesClicked != null){
+                    onNotesClicked.onNotesClicked(note);
+                }
+            }
+        });
+
+        notesAdapter.setLongClickedListener(new NotesAdapter.OnNoteLongClickedListener() {
+            @Override
+            public void onNoteLongClickedListener(@NonNull Notes note, int index) {
+                longClickedIndex = index;
+                longClickedNote = note;
+            }
+        });
     }
 
     @Nullable
@@ -70,48 +125,78 @@ public class NotesListFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         // находим макет фрагмента, куда будем добавлять вьюхи с заметками
-        LinearLayout notesList = view.findViewById(R.id.notes_list_container);
+        RecyclerView notesList = view.findViewById(R.id.notes_list_container);
 
-        // достаем список данных по заметкам из репозитория
-        List<Notes> notes = notesRepository.getNotes();
+        // ниже 4 строки про анимации на добавление и удаление заметок
+        DefaultItemAnimator animator = new DefaultItemAnimator();
+        animator.setAddDuration(1500L); // добавляем заметку с анимацией 5 секунд
+        animator.setRemoveDuration(1500L); // удаляем заметку с анимацией 5 секунд
+        notesList.setItemAnimator(animator);
 
-        int count = 1; // счетчик для четных и нечетных строк для закрашивания в серый четные заметки
 
-        // проходимся по всем заметкам
-        for(Notes note : notes){
+        BottomNavigationView bottomNavigationView = view.findViewById(R.id.bottom_navigation);
+        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                if (item.getItemId() == R.id.action_add){
+                    notesRepository.add("9", "Новая заметка", new Date(), "Новая запись в новой заметке", new Callback<Notes>() {
+                        @Override
+                        public void onSuccess(Notes result) {
+                            int index = notesAdapter.add(result);
+                            notesAdapter.notifyItemInserted(index);
+                            notesList.scrollToPosition(index);
+                        }
+                    });
 
-            // даем возможность надувать контейнер (фрагмент) вьюхами.
-            // В скобках: вьюха, макет фрагмента, перезапись - если true, то в одном и том же месте будет
-            View itemView = LayoutInflater.from(requireContext()).inflate(R.layout.item_notes, notesList,false);
-
-            itemView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    // если не нулл, то "вот по такому городу произвели нажатие"
-                    if (onNotesClicked != null){
-                        onNotesClicked.onNotesClicked(note);
-                    }
+                    return true;
                 }
-            });
-
-            // находим элементы макета
-            TextView notesName = itemView.findViewById(R.id.notes_name);
-            TextView notesDate = itemView.findViewById(R.id.notes_date);
-
-            // добавляем в найденные элементы макета текст для вывода на экран - то, чем заполняем TextView
-            notesName.setText(note.getName());
-            notesDate.setText(note.getDate());
-
-            // каждая четная строка подкрашивается в серый цвет
-            if (count%2 == 0){
-                itemView.setBackgroundResource(R.color.light_grey);
+                return true;
             }
-            count++;
+        });
 
-            // добавляем заметку
-            notesList.addView(itemView);
+        // отображаем линейно в вертикальной резметке
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(requireContext());
+        notesList.setLayoutManager(linearLayoutManager);
+
+        //создаем разделитель между карточками
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(requireContext(), linearLayoutManager.getOrientation());
+        dividerItemDecoration.setDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_separatore));
+        notesList.addItemDecoration(dividerItemDecoration);
+
+        notesList.setAdapter(notesAdapter);
+    }
+
+    // метод для создания контекстного меню
+    @Override
+    public void onCreateContextMenu(@NonNull ContextMenu menu, @NonNull View v, @Nullable ContextMenu.ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+
+        // у активити есть инфлейтер, потому можно воспользоваться им
+        requireActivity().getMenuInflater().inflate(R.menu.menu_notes_context, menu);
+    }
+
+    // чтобы можно было тыкать на менюшки
+    @Override
+    public boolean onContextItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.action_edit){
+
+            if (requireActivity() instanceof RouterHolder){
+                MainRouter router = ((RouterHolder) requireActivity()).getMainRouter();
+                router.showEditNote(longClickedNote);
+            }
+            return true;
         }
 
-
+        if (item.getItemId() == R.id.action_delete){
+            notesRepository.remove(longClickedNote, new Callback<Object>() {
+                @Override
+                public void onSuccess(Object result) {
+                    notesAdapter.remove(longClickedNote); // подобное удаление для адаптера, чтобы и там сохранить
+                    notesAdapter.notifyItemRemoved(longClickedIndex); // говорим адаптеру, что заметка была удалена по такому индексу
+                }
+            });
+            return true;
+        }
+        return super.onContextItemSelected(item);
     }
 }

@@ -7,25 +7,27 @@ import android.os.Parcelable;
 
 import androidx.annotation.StringRes;
 
+import java.util.Date;
+
 public class Notes implements Parcelable {
 
-    @StringRes // аннотация для понимания, что это не просто int, а какой-то ресурс
-    private final int name;
-    @StringRes
-    private final int date;
-    @StringRes
-    private final int note;
+    private final String id;
+    private final String name;
+    private final Date date;
+    private final String note;
 
-    public Notes(int name, int date, int note) {
+    public Notes(String id, String name, Date date, String note) {
+        this.id = id;
         this.name = name;
         this.date = date;
         this.note = note;
     }
 
     protected Notes(Parcel in) {
-        name = in.readInt();
-        date = in.readInt();
-        note = in.readInt();
+        id = in.readString();
+        name = in.readString();
+        date = new Date(in.readLong());
+        note = in.readString();
     }
 
     public static final Creator<Notes> CREATOR = new Creator<Notes>() {
@@ -40,15 +42,19 @@ public class Notes implements Parcelable {
         }
     };
 
-    public int getName() {
+    public String getId() {
+        return id;
+    }
+
+    public String getName() {
         return name;
     }
 
-    public int getDate() {
+    public Date getDate() {
         return date;
     }
 
-    public int getNote() {
+    public String getNote() {
         return note;
     }
 
@@ -59,8 +65,9 @@ public class Notes implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeInt(name);
-        parcel.writeInt(date);
-        parcel.writeInt(note);
+        parcel.writeString(id);
+        parcel.writeString(name);
+        parcel.writeLong(date.getTime());
+        parcel.writeString(note);
     }
 }

@@ -17,9 +17,11 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentResultListener;
 
 import com.example.notesv3.R;
 import com.example.notesv3.domain.Notes;
+import com.example.notesv3.ui.auth.AuthFragment;
 import com.example.notesv3.ui.details.NotesDetailsActivity;
 import com.example.notesv3.ui.details.NotesDetailsFragment;
 import com.example.notesv3.ui.list.NotesListFragment;
@@ -28,26 +30,44 @@ import com.example.notesv3.ui.toolbar.HelpFragment;
 import com.example.notesv3.ui.toolbar.SettingsFragment;
 import com.google.android.material.navigation.NavigationView;
 
-public class MainActivity extends AppCompatActivity implements NotesListFragment.OnNotesClicked {
+public class MainActivity extends AppCompatActivity implements NotesListFragment.OnNotesClicked, RouterHolder {
+
+    private MainRouter router;
+
+    @Override
+    public MainRouter getMainRouter() {
+        return router;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        router = new MainRouter(getSupportFragmentManager());
+
+        router.showAuth();
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar); // для создания меню
 
-        createStartFragment(); // добавляем фрагмент со списком заметок NotesListFragment
+//        createStartFragment(); // добавляем фрагмент со списком заметок NotesListFragment
         createNavDrawer(toolbar); // создание drawer
+
+        getSupportFragmentManager().setFragmentResultListener(AuthFragment.AUTH_RESULT, this, new FragmentResultListener() {
+            @Override
+            public void onFragmentResult(@NonNull String requestKey, @NonNull Bundle result) {
+                router.showNotes();
+            }
+        });
     }
 
-    private void createStartFragment(){
-        getSupportFragmentManager()
-                .beginTransaction()
-                .replace(R.id.notes_list_fragment, new NotesListFragment(), "NotesListFragment")
-                .commit();
-    }
+//    private void createStartFragment(){
+//        getSupportFragmentManager()
+//                .beginTransaction()
+//                .replace(R.id.notes_list_fragment, new NotesListFragment(), "NotesListFragment")
+//                .commit();
+//    }
 
     private void createNavDrawer(Toolbar toolbar){
         DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
@@ -83,8 +103,6 @@ public class MainActivity extends AppCompatActivity implements NotesListFragment
                     drawerLayout.closeDrawer(GravityCompat.START);
                     return true;
                 }
-
-
                 return false;
             }
         });

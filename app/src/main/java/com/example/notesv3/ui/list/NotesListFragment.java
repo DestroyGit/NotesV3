@@ -1,6 +1,7 @@
 package com.example.notesv3.ui.list;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
@@ -13,6 +14,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
@@ -188,14 +190,31 @@ public class NotesListFragment extends Fragment {
         }
 
         if (item.getItemId() == R.id.action_delete){
-            notesRepository.remove(longClickedNote, new Callback<Object>() {
-                @Override
-                public void onSuccess(Object result) {
-                    notesAdapter.remove(longClickedNote); // подобное удаление для адаптера, чтобы и там сохранить
-                    notesAdapter.notifyItemRemoved(longClickedIndex); // говорим адаптеру, что заметка была удалена по такому индексу
-                }
-            });
+            AlertDialog.Builder builder = new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.alert_title)
+                    .setMessage(R.string.alert_message)
+                    .setIcon(R.drawable.ic_clear)
+                    .setPositiveButton(R.string.btn_positive, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            notesRepository.remove(longClickedNote, new Callback<Object>() {
+                                @Override
+                                public void onSuccess(Object result) {
+                                    notesAdapter.remove(longClickedNote); // подобное удаление для адаптера, чтобы и там сохранить
+                                    notesAdapter.notifyItemRemoved(longClickedIndex); // говорим адаптеру, что заметка была удалена по такому индексу
+                                }
+                            });
+                        }
+                    })
+                    .setNegativeButton(R.string.btn_negative, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+
+                        }
+                    });
+            builder.show();
             return true;
+
         }
         return super.onContextItemSelected(item);
     }

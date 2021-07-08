@@ -30,4 +30,9 @@
     <string name="delete">Delete</string>
     <string name="update_note">Notes update</string>
     <string name="title">Title</string>
+
+    <string name="alert_title">ALARM</string>
+    <string name="alert_message">Вы действительно хотите удалить заметку?</string>
+    <string name="btn_positive">Delete</string>
+    <string name="btn_negative">Cancel</string>
 </resources>
